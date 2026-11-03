@@ -128,6 +128,12 @@ public class Game implements Runnable {
 	}
 	
 	public static void main(String[] args) {
-		new Game().run();
+		try {
+			new Game().run();
+		} catch (RuntimeException e) {
+			System.err.println("Cannot start the game: " + e.getMessage());
+			e.printStackTrace(System.err);
+			System.exit(1);
+		}
 	}
 }

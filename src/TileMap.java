@@ -1,10 +1,8 @@
 // @author Pavel Chemarmazovich
 // @version 0.1
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.FileReader;
-
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.io.IOException;
 
@@ -27,14 +25,24 @@ public class TileMap {
 	}
 	
 	public void loadTiles(String s) {
+		Path path = Paths.get(s);
+		if (!Files.isRegularFile(path)) {
+			throw new IllegalStateException("Tileset not found: " + path.toAbsolutePath()
+					+ " (run the game from the project root)");
+		}
+
 		Texture t = new Texture();
 		try {
-			t.loadFromFile(Paths.get(s));
+			t.loadFromFile(path);
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new IllegalStateException("Cannot load tileset: " + path.toAbsolutePath(), e);
 		}
+
 		int col = t.getSize().x / tileSize;
 		int row = t.getSize().y / tileSize;
+		if (col == 0 || row == 0) {
+			throw new IllegalStateException("Tileset is too small: " + path.toAbsolutePath());
+		}
 		tiles = new Tile[col * row];
 		for (int i = 0; i < row; i++) {
 			for (int j = 0; j < col - 1; j++) {

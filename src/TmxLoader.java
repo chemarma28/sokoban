@@ -28,12 +28,21 @@ public class TmxLoader {
 	}
 	
 	public void loadFromTmx(String s) {
+		File file = new File(s);
+		if (!file.isFile()) {
+			throw new IllegalStateException("Map file not found: " + file.getAbsolutePath()
+					+ " (run the game from the project root)");
+		}
+
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
-			Document doc = builder.parse(new File(s));
+			Document doc = builder.parse(file);
 			
 			NodeList layer = doc.getElementsByTagName("layer");
+			if (layer.getLength() == 0) {
+				throw new IllegalStateException("Map has no tile layer: " + file.getAbsolutePath());
+			}
 			NamedNodeMap layerAttr = layer.item(0).getAttributes();
 			data = new Data(
 					Integer.parseInt(layerAttr.getNamedItem("width").getNodeValue()),
@@ -68,12 +77,8 @@ public class TmxLoader {
 				}
 				groups.add(group);
 			}
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (SAXException | ParserConfigurationException | IOException e) {
+			throw new IllegalStateException("Cannot load map: " + file.getAbsolutePath(), e);
 		}
 	}
 	
@@ -84,13 +89,19 @@ public class TmxLoader {
 	
 	public void setPlayerLocation(Player p) {
 		for (int i = 0; i < groups.size(); i++) {
-			if (groups.get(i).name.equals("player_position")) {
-				int x = (int) (groups.get(i).get(0).getX() / tileMap.getTileSize()) * tileMap.getTileSize();
-				int y = (int) (groups.get(i).get(0).getY() / tileMap.getTileSize()) * tileMap.getTileSize();
+			ObjectGroup group = groups.get(i);
+			if (group.name.equals("player_position")) {
+				if (group.size() == 0) {
+					throw new IllegalStateException("Map has an empty 'player_position' object group");
+				}
+				int x = (int) (group.get(0).getX() / tileMap.getTileSize()) * tileMap.getTileSize();
+				int y = (int) (group.get(0).getY() / tileMap.getTileSize()) * tileMap.getTileSize();
 				p.setX(x + tileMap.getTileSize() / 2);
 				p.setY(y - tileMap.getTileSize() / 2);
+				return;
 			}
 		}
+		throw new IllegalStateException("Map has no 'player_position' object group");
 	}
 	
 	public void createBlocks(ArrayList<Block> blocks) {

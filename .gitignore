@@ -1,0 +1,24 @@
+# Build output
+bin/
+build/
+out/
+*.class
+
+# Extracted JSFML classes
+lib/org/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+hs_err_pid*

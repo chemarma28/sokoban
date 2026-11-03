@@ -1,6 +1,8 @@
 // @author Pavel Chemarmazovich
 // @version 0.1
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import java.io.IOException;
@@ -34,11 +36,21 @@ public class Player extends MapObject {
 	}
 	
 	public void loadAnimations(String s) {
+		Path path = Paths.get(s);
+		if (!Files.isRegularFile(path)) {
+			throw new IllegalStateException("Sprite sheet not found: " + path.toAbsolutePath()
+					+ " (run the game from the project root)");
+		}
+
 		Texture t = new Texture();
 		try {
-			t.loadFromFile(Paths.get(s));
+			t.loadFromFile(path);
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new IllegalStateException("Cannot load sprite sheet: " + path.toAbsolutePath(), e);
+		}
+		if (t.getSize().x < 72 || t.getSize().y < 96) {
+			throw new IllegalStateException("Sprite sheet is too small (expected at least 72x96): "
+					+ path.toAbsolutePath());
 		}
 		
 		// LOADING ALL TEXTURE REGIONS OF ANIMATIONS
